@@ -2,11 +2,9 @@ const { parse } = require("url");
 const express = require("express");
 const { DEFAULT_HEADER } = require("./util/util.js");
 const { controller, urlFilter } = require("./controller");
-const { createReadStream, createWriteStream, WriteStream } = require("fs");
+const { createReadStream, createWriteStream } = require("fs");
 const path = require("path");
 const fs = require("fs/promises");
-const { formidable } = require("formidable");
-
 
 const allRoutes = {
   "/:get": (request, response) => {
@@ -18,9 +16,7 @@ const allRoutes = {
     controller.sendFormData(request, response);
   },
   // POST: localhost:3000/images
-  "/images:post": (request, response) => {
-    controller.uploadImages(request, response);
-  },
+
   // GET: localhost:3000/feed
   // Shows instagram profile for a given user
   "/feed:get": (request, response) => {
@@ -38,21 +34,36 @@ const allRoutes = {
     response.end(data);
   },
   "/sandraProfile:get": async (request, response) => {
-    const imagePath = path.join(__dirname, "photos", "sandra123", "profile.jpeg");
+    const imagePath = path.join(
+      __dirname,
+      "photos",
+      "sandra123",
+      "profile.jpeg"
+    );
     const data = await fs.readFile(imagePath);
     response.end(data);
   },
   "/profile:get": async (request, response) => {
     const profileUser = urlFilter(request, response, "username");
-    const imagePath = path.join(__dirname, "photos", profileUser, "profile.jpeg");
+    const imagePath = path.join(
+      __dirname,
+      "photos",
+      profileUser,
+      "profile.jpeg"
+    );
     const data = await fs.readFile(imagePath);
     response.end(data);
   },
   "/gallery:get": async (request, response) => {
     const profileUser = urlFilter(request, response, "username");
     const photoNum = urlFilter(request, response, "picture");
-    const imagePath = path.join(__dirname, "photos", profileUser, `pic${photoNum}.png`);
-    try{
+    const imagePath = path.join(
+      __dirname,
+      "photos",
+      profileUser,
+      `pic${photoNum}.png`
+    );
+    try {
       const data = await fs.readFile(imagePath);
       response.end(data);
     } catch (err) {
@@ -60,28 +71,8 @@ const allRoutes = {
     }
   },
   "/upload:post": async (request, response) => {
-    const form = formidable({ multiples: true });
-    const profileUser = urlFilter(request, response, "username");
-    console.log(profileUser)
-    form.parse(request, async (err, fields, files) => {
-      if (err) {
-        response.writeHead(404, DEFAULT_HEADER);
-        response.end(); 
-        return;
-      }
-      form.multiples = true;
-
-      
-      const filename = files.file[0].originalFilename;
-      const filePath = files.file[0].filepath;
-      const uploadFolder = path.join(__dirname, "photos", profileUser, filename);
-      
-    const source = createReadStream(filePath);
-    const destination = createWriteStream(uploadFolder);
-    source.pipe(destination)   
-    });
+    controller.uploadImages(request, response);
   },
-  
 
   // 404 routes
   default: (request, response) => {
@@ -91,8 +82,6 @@ const allRoutes = {
     );
   },
 };
-
-
 
 function handler(request, response) {
   const { url, method } = request;
