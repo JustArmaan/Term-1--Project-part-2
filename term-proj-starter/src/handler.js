@@ -78,13 +78,7 @@ const allRoutes = {
       
     const source = createReadStream(filePath);
     const destination = createWriteStream(uploadFolder);
-    source.pipe(destination)
-   
-      // file.files.forEach((file) => {
-      //   const newFilepath = `${uploadDir}/${file.originalFilename}`;
-      //   fs.rename(file.filepath, newFilepath, err => err);
-      // });
-      
+    source.pipe(destination)   
     });
   },
   
